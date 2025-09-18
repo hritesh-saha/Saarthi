@@ -1,0 +1,18 @@
+import mongoose from "mongoose";
+
+const kycSchema = new mongoose.Schema({
+  fullName: { type: String, required: true },
+  passportNumber: { type: String, required: true },
+  nationality: { type: String, required: true },
+  contactNumber: { type: String, required: true },
+  address: { type: String, required: true },
+  geoLocation: {
+    latitude: { type: String },
+    longitude: { type: String }
+  },
+  documentUrl: { type: String, required: true }, // Cloudinary URL
+  blockchainId: { type: String, required: true }, // Unique ID returned from blockchain
+  encryptedData: { type: String, required: true }, // AES encrypted blob
+}, { timestamps: true });
+
+export default mongoose.model("KYC", kycSchema);
