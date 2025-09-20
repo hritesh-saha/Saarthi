@@ -5,7 +5,7 @@ contract TouristRegistry {
     // Struct to represent a tourist
     struct Tourist {
         string username;       
-        string encryptedData;  
+        string hashedData;  
         bool exists;           
     }
 
@@ -16,7 +16,7 @@ contract TouristRegistry {
     address public owner;
 
     // Events
-    event TouristRegistered(uint256 touristId, string username, string encryptedData);
+    event TouristRegistered(uint256 touristId, string username, string hashedData);
 
     // Restrict access to contract owner
     modifier onlyOwner() {
@@ -32,27 +32,27 @@ contract TouristRegistry {
     function registerTourist(
         uint256 _touristId,
         string memory _username,
-        string memory _encryptedData
+        string memory _hashedData
     ) public onlyOwner {
         require(!tourists[_touristId].exists, "Tourist already registered");
 
         tourists[_touristId] = Tourist({
             username: _username,
-            encryptedData: _encryptedData,
+            hashedData: _hashedData,
             exists: true
         });
 
-        emit TouristRegistered(_touristId, _username, _encryptedData);
+        emit TouristRegistered(_touristId, _username, _hashedData);
     }
 
     // Fetch tourist details by ID
     function getTourist(uint256 _touristId)
         public
         view
-        returns (string memory username, string memory encryptedData)
+        returns (string memory username, string memory hashedData)
     {
         require(tourists[_touristId].exists, "Tourist not registered");
         Tourist memory t = tourists[_touristId];
-        return (t.username, t.encryptedData);
+        return (t.username, t.hashedData);
     }
 }
