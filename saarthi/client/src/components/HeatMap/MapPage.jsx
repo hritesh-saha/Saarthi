@@ -11,8 +11,7 @@ const generateMockPeople = (count, center, radius = 0.1) => {
 };
 
 const MapPage = () => {
-  // The hotspot definitions remain for generating mock data.
-  // LATER: This entire block will be replaced by a fetch call.
+  // Mock tourist hotspots (kept as-is)
   const touristHotspots = [
     { name: "High Density Zone", center: [22.5448, 88.3426], count: 900, radius: 0.01 },
     { name: "Medium Density Zone", center: [22.5609, 88.3564], count: 500, radius: 0.02 },
@@ -20,8 +19,7 @@ const MapPage = () => {
     { name: "Scattered Medium Zone", center: [22.5533, 88.3541], count: 350, radius: 0.025 }
   ];
 
-  // This generates the mock data. When you get data from the backend,
-  // you will simply set it to a state variable.
+  // Mock data generator
   const peopleLocations2 = useMemo(
     () =>
       touristHotspots.flatMap((spot) =>
@@ -30,38 +28,68 @@ const MapPage = () => {
     []
   );
 
-
   const [peopleLocations, setPeopleLocations] = useState([]);
-  const [isLoading, setIsLoading] = useState(true); // Optional: for loading state
+  const [isLoading, setIsLoading] = useState(true); // Loading state
+  const [places, setPlaces] = useState([]); // Unique places from backend
+  const [selectedPlace, setSelectedPlace] = useState(""); // Dropdown selection
 
-  // 2. Use useEffect to fetch data when the component mounts.
+  const kolkataCenter = [22.5726, 88.3639];
+
+  // Fetch all locations initially to populate dropdown
   useEffect(() => {
-    // This function fetches and formats your data.
-    const fetchLocations = async () => {
+    const fetchAllLocations = async () => {
       try {
-        // Replace with your actual API endpoint
-        const response = await fetch("http://localhost:5173/locations"); 
+        const response = await fetch("http://localhost:5173/locations");
         const data = await response.json();
 
-        // The map needs [latitude, longitude]
-        const formattedLocations = data.map(location => [
-          parseFloat(location.lastCoordinates.latitude), // Convert string to number
-          parseFloat(location.lastCoordinates.longitude) // Convert string to number
+        // Extract unique places for dropdown
+        const uniquePlaces = [...new Set(data.map((loc) => loc.lastVisitedPlace).filter(Boolean))];
+        setPlaces(uniquePlaces);
+
+        // Format coordinates
+        const formattedLocations = data.map((loc) => [
+          parseFloat(loc.lastCoordinates.latitude),
+          parseFloat(loc.lastCoordinates.longitude),
         ]);
-        
-        setPeopleLocations(formattedLocations); // Update the state with real data
+
+        setPeopleLocations(formattedLocations);
       } catch (error) {
         console.error("Failed to fetch locations:", error);
       } finally {
-        setIsLoading(false); // Stop loading indicator
+        setIsLoading(false);
       }
     };
 
-    fetchLocations();
-  }, []); // The empty dependency array [] ensures this runs only once.
+    fetchAllLocations();
+  }, []);
 
-  // A fallback center in case no data is available.
-  const kolkataCenter = [22.5726, 88.3639];
+  // Fetch filtered locations when a place is selected
+  useEffect(() => {
+    if (!selectedPlace) return;
+
+    const fetchFilteredLocations = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `http://localhost:5173/locations?place=${encodeURIComponent(selectedPlace)}`
+        );
+        const data = await response.json();
+
+        const formattedLocations = data.map((loc) => [
+          parseFloat(loc.lastCoordinates.latitude),
+          parseFloat(loc.lastCoordinates.longitude),
+        ]);
+
+        setPeopleLocations(formattedLocations);
+      } catch (error) {
+        console.error("Failed to fetch filtered locations:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFilteredLocations();
+  }, [selectedPlace]);
 
   if (isLoading) {
     return <div>Loading location data...</div>;
@@ -70,10 +98,25 @@ const MapPage = () => {
   return (
     <div>
       <h1>Kolkata Tourist Density</h1>
-      {/* Pass the data points and a default center to the display component.
-        This is much cleaner.
-      */}
-      <TouristHeatmap points={peopleLocations2} defaultCenter={kolkataCenter} />
+
+      {/* Dropdown Filter */}
+      <label style={{ display: "block", margin: "10px 0" }}>
+        Select Place:{" "}
+        <select
+          value={selectedPlace}
+          onChange={(e) => setSelectedPlace(e.target.value)}
+        >
+          <option value="">All Places</option>
+          {places.map((place, idx) => (
+            <option key={idx} value={place}>
+              {place}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      {/* Heatmap */}
+      <TouristHeatmap points={peopleLocations2.concat(peopleLocations)} defaultCenter={kolkataCenter} />
     </div>
   );
 };

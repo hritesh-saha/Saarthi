@@ -15,4 +15,6 @@ const kycSchema = new mongoose.Schema({
   encryptedData: { type: String, required: true }, // AES encrypted blob
 }, { timestamps: true });
 
-export default mongoose.model("KYC", kycSchema);
+const kyc=mongoose.model("KYC", kycSchema);
+
+export default kyc;

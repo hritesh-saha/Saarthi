@@ -13,4 +13,6 @@ const locationSchema = new mongoose.Schema({
   lastUpdated: { type: Date, default: Date.now }
 });
 
-export default mongoose.model("Location", locationSchema);
+const location= mongoose.model("Location", locationSchema)
+
+export default location;

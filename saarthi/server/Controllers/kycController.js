@@ -2,6 +2,7 @@ import KYC from "../models/kycModel.js";
 import { encryptData, decryptData } from "../utils/encrypt.js";
 import { storeHashInBlockchain } from "../utils/blockchain.js";
 import crypto from "crypto";
+import kyc from "../models/kycModel.js";
 
  // CREATE KYC
 
@@ -30,7 +31,7 @@ export const storeKYC = async (req, res) => {
     const blockchainId = await storeHashInBlockchain(dataHash);
 
     // Save in MongoDB
-    const kycRecord = new KYC({
+    const kycRecord = new kyc({
       fullName,
       passportNumber,
       nationality,
@@ -59,7 +60,7 @@ export const storeKYC = async (req, res) => {
 export const getKYC = async (req, res) => {
   try {
     const { id } = req.params;
-    const kycRecord = await KYC.findById(id);
+    const kycRecord = await kyc.findById(id);
 
     if (!kycRecord) {
       return res.status(404).json({ message: "❌ KYC record not found" });
@@ -87,7 +88,7 @@ export const updateKYC = async (req, res) => {
     const { id } = req.params;
     const { fullName, passportNumber, nationality, contactNumber, address, latitude, longitude } = req.body;
 
-    const kycRecord = await KYC.findById(id);
+    const kycRecord = await kyc.findById(id);
     if (!kycRecord) {
       return res.status(404).json({ message: "❌ KYC record not found" });
     }
