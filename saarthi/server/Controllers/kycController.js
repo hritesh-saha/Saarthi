@@ -11,8 +11,11 @@ export const storeKYC = async (req, res) => {
   try {
     const { fullName, passportNumber, nationality, contactNumber, address, latitude, longitude } = req.body;
 
-    // Cloudinary upload handled by multer
-    const documentUrl = req.file.path;
+    // Convert uploaded PDF file to base64
+    let documentBase64 = null;
+    if (req.file) {
+      documentBase64 = req.file.buffer.toString("base64"); // multer with storage.memoryStorage() required
+    }
 
     // Encrypt details
     const encryptedData = encryptData({
@@ -27,11 +30,12 @@ export const storeKYC = async (req, res) => {
 
     // Create hash of data
     const dataHash = crypto.createHash("sha256").update(encryptedData).digest("hex");
+
     // Unique ID for tourist
     const touristId = uuidv4();
 
     // Store hash in blockchain
-    const blockchainId = await storeDataInBlockchain(touristId,fullName, dataHash);
+    const blockchainId = await storeDataInBlockchain(touristId, fullName, dataHash);
 
     // Save in MongoDB
     const kycRecord = new kyc({
@@ -42,7 +46,7 @@ export const storeKYC = async (req, res) => {
       contactNumber,
       address,
       geoLocation: { latitude, longitude },
-      documentUrl,
+      documentBase64, // store PDF file as base64
       blockchainId,
       encryptedData
     });
@@ -58,6 +62,7 @@ export const storeKYC = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
  // GET KYC by ID
 
