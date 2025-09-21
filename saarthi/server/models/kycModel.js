@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const kycSchema = new mongoose.Schema({
+  touristId: { type: String, required: true, unique: true }, // Unique ID for the tourist
   fullName: { type: String, required: true },
   passportNumber: { type: String, required: true },
   nationality: { type: String, required: true },

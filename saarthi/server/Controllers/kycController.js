@@ -1,6 +1,7 @@
+import { v4 as uuidv4 } from "uuid";
 import KYC from "../models/kycModel.js";
 import { encryptData, decryptData } from "../utils/encrypt.js";
-import { storeHashInBlockchain } from "../utils/blockchain.js";
+import { storeDataInBlockchain } from "../utils/blockchain.js";
 import crypto from "crypto";
 import kyc from "../models/kycModel.js";
 
@@ -26,12 +27,15 @@ export const storeKYC = async (req, res) => {
 
     // Create hash of data
     const dataHash = crypto.createHash("sha256").update(encryptedData).digest("hex");
+    // Unique ID for tourist
+    const touristId = uuidv4();
 
     // Store hash in blockchain
-    const blockchainId = await storeHashInBlockchain(dataHash);
+    const blockchainId = await storeDataInBlockchain(touristId,fullName, dataHash);
 
     // Save in MongoDB
     const kycRecord = new kyc({
+      touristId,
       fullName,
       passportNumber,
       nationality,

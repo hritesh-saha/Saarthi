@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+dotenv.config();
 import kycRoutes from './routes/kycRoutes.js';
 import cron from "node-cron";
 import { checkTouristActivity } from "./utils/alertService.js";
-dotenv.config();
 
 import connectDB from './configs/db.js';
 
@@ -14,10 +14,10 @@ app.use(express.json());
 
 connectDB();
 
-cron.schedule("*/1 * * * *", () => {
-  console.log("🔍 Checking inactive tourists...");
-  checkTouristActivity();
-});
+// cron.schedule("*/1 * * * *", () => {
+//   console.log("🔍 Checking inactive tourists...");
+//   checkTouristActivity();
+// });
 
 app.use("/api/kyc", kycRoutes);
 
