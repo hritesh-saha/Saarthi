@@ -36,10 +36,11 @@ const MapPage = () => {
   const kolkataCenter = [22.5726, 88.3639];
 
   // Fetch all locations initially to populate dropdown
+  const baseurl=import.meta.env.VITE_API_URL;
   useEffect(() => {
     const fetchAllLocations = async () => {
       try {
-        const response = await fetch("http://localhost:5173/locations");
+        const response = await fetch(`${baseurl}/locations`);
         const data = await response.json();
 
         // Extract unique places for dropdown
