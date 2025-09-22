@@ -3,43 +3,30 @@ import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
-import { calculateCenter } from "../../utils/map";
+import { calculateCenter, HeatmapLayer } from "../../utils/map";
 
-const HeatmapLayer = ({ points, options }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (!map) return;
-    const heat = L.heatLayer(points, options).addTo(map);
-    return () => { map.removeLayer(heat); };
-  }, [map, points, options]);
-  return null;
-};
-
-
-// --- REFACTORED DISPLAY COMPONENT ---
 const TouristHeatmap = ({ points = [], defaultCenter }) => {
-  // 1. Decide the center based on the provided points.
-  //    If no points, use the default center.
-  const mapCenter = useMemo(() => calculateCenter(points) || defaultCenter, [points, defaultCenter]);
-
-  // 2. Format the points for the leaflet-heat library.
-  const heatPoints = useMemo(
-    () => points.map((p) => [p[0], p[1], 1]), // [lat, lng, intensity]
-    [points]
+  const mapCenter = useMemo(
+    () => calculateCenter(points) || defaultCenter,
+    [points, defaultCenter]
   );
 
-  // If mapCenter is not ready, don't render the map yet.
+  // Normalize intensities to 0–1 for Leaflet Heat
+  const maxIntensity = Math.max(...points.map(p => p[2] || 0.2));
+
+  const heatPoints = useMemo(
+    () => points.map(p => [p[0], p[1], (p[2] || 0.2) / maxIntensity]),
+    [points, maxIntensity]
+  );
+
   if (!mapCenter) {
-    return <div>Loading map...</div>;
+    return <div className="text-center text-gray-500">Loading map...</div>;
   }
-  
+
   return (
-    <div className="w-full h-[520px] rounded-lg overflow-hidden border">
-      {/* The 'key' prop is important! It forces React to re-render the map
-        component if the center changes, ensuring it re-initializes correctly.
-      */}
+    <div className="w-full h-[520px] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-lg">
       <MapContainer
-        key={mapCenter.toString()} // Force re-render on center change
+        key={mapCenter.toString()}
         center={mapCenter}
         zoom={13}
         style={{ height: "100%", width: "100%" }}
@@ -51,8 +38,16 @@ const TouristHeatmap = ({ points = [], defaultCenter }) => {
         <HeatmapLayer
           points={heatPoints}
           options={{
-            radius: 20, blur: 15, maxZoom: 17,
-            gradient: { 0.0: "white", 0.2: "green", 0.4: "yellow", 0.7: "orange", 1.0: "red" },
+            radius: 25,
+            blur: 15,
+            maxZoom: 17,
+            gradient: {
+              0.0: "white",
+              0.2: "green",   // sparse / safe
+              0.4: "yellow",  // moderate
+              0.6: "orange",  // crowded
+              1.0: "red",     // very crowded
+            },
           }}
         />
       </MapContainer>
