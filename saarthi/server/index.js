@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 dotenv.config();
 import kycRoutes from './routes/kycRoutes.js';
+import userRoutes from "./routes/userRoutes.js";
+import locationRoutes from "./routes/locationRoutes.js";
 import cron from "node-cron";
 import { checkTouristActivity } from "./utils/alertService.js";
 
@@ -20,6 +22,8 @@ connectDB();
 // });
 
 app.use("/api/kyc", kycRoutes);
+app.use("/api/location", locationRoutes);
+app.use("/auth/users", userRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is working!');
