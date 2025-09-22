@@ -16,17 +16,29 @@ web3.eth.defaultAccount = ownerAccount.address;
 
 const contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
 
-
 export const storeDataInBlockchain = async (touristId, username, hashedData) => {
   try {
+    // Check if tourist already exists
+    const existing = await contract.methods.getTourist(touristId).call().catch(() => null);
+
+    if (existing && existing.username) {
+      console.log("Tourist already registered on blockchain");
+      return null;
+    }
+
+    // Register on-chain if not exists
     const tx = contract.methods.registerTourist(touristId, username, hashedData);
+    const gasEstimate = await tx.estimateGas({ from: ownerAccount.address });
+
     const receipt = await tx.send({
       from: ownerAccount.address,
+      gas: gasEstimate,
     });
+
     return receipt.transactionHash;
+
   } catch (err) {
     console.error("Blockchain error:", err);
-    throw err; // propagate to calling function
+    throw err;
   }
 };
-

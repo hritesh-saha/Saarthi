@@ -29,12 +29,15 @@ export const storeKYC = async (req, res) => {
 
     // Create hash of data
     const dataHash = crypto.createHash("sha256").update(encryptedData).digest("hex");
-
     // Unique ID for tourist
-    const touristId = uuidv4();
+    const data = `${fullName}|${contactNumber}|${nationality}|${address}`;
 
+    const touristId = crypto.createHash("sha256").update(data).digest("hex");
     // Store hash in blockchain
     const blockchainId = await storeDataInBlockchain(touristId, fullName, dataHash);
+    if(!blockchainId){
+      return res.status(500).json({ message: "Tourist Id already exists" });
+    }
 
     // Save in MongoDB
     const kycRecord = new kyc({
