@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import TouristHeatmap from "./components/HeatMap/TouristHeatmap";
 import MapPage from "./components/HeatMap/MapPage.jsx";
 import Contacts from "./components/Contacts.jsx";
+import Dashboard from "./components/Dashboard.jsx";
 
 const Home = () => <h2>🏠 Home Page</h2>;
 const About = () => <h2>ℹ️ About Page</h2>;
@@ -19,7 +20,7 @@ function App() {
 
         {/* Routes */}
         <Routes>
-          <Route path="/" element={<MapPage/>} />
+          <Route path="/" element={<Dashboard/>} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contacts/>} />
         </Routes>
