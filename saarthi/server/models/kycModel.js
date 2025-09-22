@@ -11,7 +11,7 @@ const kycSchema = new mongoose.Schema({
     latitude: { type: String },
     longitude: { type: String }
   },
-  documentUrl: { type: String, required: true }, // Cloudinary URL
+  documentUrl: { type: String}, // Cloudinary URL
   blockchainId: { type: String, required: true }, // Unique ID returned from blockchain
   encryptedData: { type: String, required: true }, // AES encrypted blob
 }, { timestamps: true });

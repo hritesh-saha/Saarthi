@@ -10,13 +10,13 @@ contract TouristRegistry {
     }
 
     // Mapping from touristId => Tourist
-    mapping(uint256 => Tourist) public tourists;
+    mapping(string => Tourist) public tourists;
 
     // Contract owner
     address public owner;
 
     // Events
-    event TouristRegistered(uint256 touristId, string username, string hashedData);
+    event TouristRegistered(string touristId, string username, string hashedData);
 
     // Restrict access to contract owner
     modifier onlyOwner() {
@@ -30,7 +30,7 @@ contract TouristRegistry {
 
     // Register a new tourist
     function registerTourist(
-        uint256 _touristId,
+        string memory _touristId,
         string memory _username,
         string memory _hashedData
     ) public onlyOwner {
@@ -46,7 +46,7 @@ contract TouristRegistry {
     }
 
     // Fetch tourist details by ID
-    function getTourist(uint256 _touristId)
+    function getTourist(string memory _touristId)
         public
         view
         returns (string memory username, string memory hashedData)
