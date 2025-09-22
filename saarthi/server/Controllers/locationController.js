@@ -1,4 +1,4 @@
-import location from "../models/locationModel";
+import location from "../models/locationModel.js";
 
 // Tourist updates location
 export const updateLocation = async (req, res) => {

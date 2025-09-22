@@ -1,10 +1,13 @@
 import crypto from "crypto";
-
+import dotenv from 'dotenv';
+dotenv.config();
 const algorithm = "aes-256-cbc";
-const secretKey = process.env.ENCRYPTION_SECRET; // 32 chars key
+const secretKey = process.env.ENCRYPTION_SECRET;
+ // 32 chars key
 const iv = crypto.randomBytes(16);
 
 export const encryptData = (data) => {
+  console.log( secretKey)
   const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey), iv);
   let encrypted = cipher.update(JSON.stringify(data));
   encrypted = Buffer.concat([encrypted, cipher.final()]);

@@ -22,7 +22,6 @@ export const storeDataInBlockchain = async (touristId, username, hashedData) => 
     const tx = contract.methods.registerTourist(touristId, username, hashedData);
     const receipt = await tx.send({
       from: ownerAccount.address,
-      gas: 300000
     });
     return receipt.transactionHash;
   } catch (err) {

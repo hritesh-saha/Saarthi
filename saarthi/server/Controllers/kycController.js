@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from "uuid";
-import KYC from "../models/kycModel.js";
 import { encryptData, decryptData } from "../utils/encrypt.js";
 import { storeDataInBlockchain } from "../utils/blockchain.js";
 import crypto from "crypto";
