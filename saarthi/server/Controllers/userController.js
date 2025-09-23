@@ -26,7 +26,7 @@ export const registerUser = async (req, res) => {
 
     await user.save();
 
-    res.status(201).json({ message: "✅ User registered successfully", userId: user._id });
+    res.status(201).json({ message: "✅ User registered successfully", userId: user._id, user: user });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -52,7 +52,7 @@ export const loginUser = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    res.json({ message: "✅ Login successful", token });
+    res.json({ message: "✅ Login successful", token, user: user });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
