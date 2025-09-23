@@ -13,8 +13,8 @@ import { useRouter } from "expo-router";
 import axios from "axios";
 
 const API_BASE_URL = "http://localhost:5000"; // Replace with your backend
-const LOGIN_ENDPOINT = `${API_BASE_URL}/auth/login`;
-const SIGNUP_ENDPOINT = `${API_BASE_URL}/auth/register`;
+const LOGIN_ENDPOINT = `${API_BASE_URL}/auth/users/login`;
+const SIGNUP_ENDPOINT = `${API_BASE_URL}/auth/users/register`;
 
 export default function Page() {
   const router = useRouter();
@@ -119,8 +119,8 @@ export default function Page() {
       });
 
       const { message } = response.data;
-
-      setAlertMessage(message + " Redirecting to login...");
+      router.push("/kycfolder/kycfolder");
+      setAlertMessage(message + " Redirecting to KYC...");
       setIsLogin(true);
     } catch (err: any) {
       if (err.response) {

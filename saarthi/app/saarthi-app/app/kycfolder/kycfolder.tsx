@@ -1,5 +1,6 @@
 // KYCForm.tsx
 import React, { useState } from "react";
+import Toast from "react-native-toast-message";
 import {
   View,
   Text,
@@ -133,10 +134,11 @@ export default function KYCForm() {
       if (!location) return;
 
       const formData = new FormData();
-      Object.entries(form).forEach(([key, value]) =>
-        formData.append(key, value)
-      );
-
+      Object.entries(form).forEach(([key, value]) => {
+  if (key !== "latitude" && key !== "longitude") {
+    formData.append(key, value);
+  }
+});
       formData.append("latitude", location.latitude);
       formData.append("longitude", location.longitude);
 
@@ -157,20 +159,41 @@ export default function KYCForm() {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
+      console.log(res);
+       if (res.status === 201) {
+      // ✅ Success toast
+      Toast.show({
+        type: "success",
+        text1: "KYC submitted ✅",
+        text2: "Your details were stored successfully!",
+        visibilityTime: 2000,
+        position: "bottom",
+      });
 
-      if (res.status === 201) {
-        Alert.alert("✅ Success", "KYC stored successfully!", [
-          { text: "OK", onPress: () => router.push("/home/home") },
-        ]);
-      } else {
-        Alert.alert("❌ Failed", res.data.message || "Something went wrong");
-      }
-    } catch (err: any) {
-      Alert.alert("Error", err.message || "Failed to submit KYC");
-    } finally {
-      setLoading(false);
+      // Navigate after toast
+      setTimeout(() => {
+        router.push("/home/home");
+      }, 2000);
     }
-  };
+  } catch (error: unknown) {
+    // Narrow the type
+    if (axios.isAxiosError(error)) {
+      Toast.show({
+        type: "error",
+        text1: "Submission failed ❌",
+        text2: error.response?.data?.message || "Something went wrong",
+        visibilityTime: 3000,
+        position: "bottom",
+      });
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Unexpected error ❌",
+        text2: String(error),
+      });
+    }
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>
