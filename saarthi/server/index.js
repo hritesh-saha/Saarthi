@@ -7,6 +7,7 @@ import userRoutes from "./routes/userRoutes.js";
 import locationRoutes from "./routes/locationRoutes.js";
 import cron from "node-cron";
 import { checkTouristActivity } from "./utils/alertService.js";
+import sosRoutes from "./routes/sosRoutes.js"
 
 import connectDB from './configs/db.js';
 
@@ -24,6 +25,7 @@ connectDB();
 app.use("/api/kyc", kycRoutes);
 app.use("/api/location", locationRoutes);
 app.use("/auth/users", userRoutes);
+app.use("/api/alert",sosRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is working!');

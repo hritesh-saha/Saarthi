@@ -2,6 +2,9 @@ import mongoose from "mongoose";
 
 const sosSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  username: {
+    type: String,
+  },
   location: {
     latitude: { type: String, required: true },
     longitude: { type: String, required: true }
