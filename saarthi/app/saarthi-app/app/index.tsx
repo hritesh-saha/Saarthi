@@ -11,10 +11,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_BASE_URL = "http://localhost:5000"; // Replace with your backend
-const LOGIN_ENDPOINT = `${API_BASE_URL}/auth/login`;
-const SIGNUP_ENDPOINT = `${API_BASE_URL}/auth/register`;
+const LOGIN_ENDPOINT = `${API_BASE_URL}/auth/users/login`;
+const SIGNUP_ENDPOINT = `${API_BASE_URL}/auth/users/register`;
 
 export default function Page() {
   const router = useRouter();
@@ -57,15 +58,18 @@ export default function Page() {
       const response = await axios.post(LOGIN_ENDPOINT, { email, password });
 
       // Backend returns { message, token }
-      const { message, token } = response.data;
+      const { message, token, user } = response.data;
 
       setAlertMessage(message);
 
-      if (token) {
-        // Save token if needed (AsyncStorage or context)
-        // Navigate to home
-        router.push("/home/home");
-      }
+      if (token && user) {
+      // Store user and token in AsyncStorage
+      await AsyncStorage.setItem("userToken", token);
+      await AsyncStorage.setItem("userInfo", JSON.stringify(user));
+
+      // Navigate to home
+      router.push("/home/home");
+    }
     } catch (err: any) {
       // Axios error
       if (err.response) {
@@ -118,10 +122,18 @@ export default function Page() {
         role,
       });
 
-      const { message } = response.data;
+      const { message, token, user } = response.data;
 
-      setAlertMessage(message + " Redirecting to login...");
-      setIsLogin(true);
+      setAlertMessage(message + " Redirecting to kyc registration...");
+      if (token && user) {
+      // Store user and token in AsyncStorage
+      await AsyncStorage.setItem("userToken", token);
+      await AsyncStorage.setItem("userInfo", JSON.stringify(user));
+
+      // Navigate to home
+      router.push("/kycfolder/kycfolder");
+    }
+      // setIsLogin(true);
     } catch (err: any) {
       if (err.response) {
         setAlertMessage(err.response.data.message || "Sign up failed");
