@@ -38,7 +38,7 @@ export default function Page() {
 
     if (token) {
       setAlertMessage("Logged in successfully!");
-      router.push("/home/home"); // Navigate to HomeScreen
+      router.push("/kycfolder/kycfolder"); // Navigate to KYC Form
     }
   } catch (err) {
     setAlertMessage("Login failed. Please try again.");
@@ -62,6 +62,7 @@ export default function Page() {
       await new Promise((res) => setTimeout(res, 1000)); // Mock delay
 
       setAlertMessage("Account created! Redirecting to login...");
+      router.push("/kycfolder/kycfolder");
       setIsLogin(true);
     } catch (err) {
       setAlertMessage("Sign up failed. Please try again.");
