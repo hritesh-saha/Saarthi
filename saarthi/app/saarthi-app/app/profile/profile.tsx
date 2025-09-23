@@ -1,7 +1,8 @@
 // File: app/profile/Profile.tsx
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 
 type UserType = {
   username: string;
@@ -17,10 +18,19 @@ export default function Profile() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const userData = await AsyncStorage.getItem("userInfo");
-        if (userData) setUser(JSON.parse(userData));
-      } catch (error) {
+        const userId = await localStorage.getItem("userInfo");
+        const Id = JSON.parse(userId || "null");
+
+        if (!userId) throw new Error("User ID not found in storage");
+
+      // Fetch user from backend
+      const response = await fetch(`http://localhost:5000/auth/users/${Id}`);
+      const data = await response.json();
+      console.log(data);
+      setUser(data);
+    } catch (error: any) {
         console.error("Failed to load user:", error);
+        Alert.alert("Error", error.message || "Failed to fetch user data");
       } finally {
         setLoading(false);
       }
