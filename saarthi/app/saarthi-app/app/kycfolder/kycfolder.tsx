@@ -11,7 +11,9 @@ import {
   SafeAreaView,
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
+import * as Location from "expo-location";
 import { router } from "expo-router";
+import axios from "axios";
 
 export default function KYCForm() {
   const [form, setForm] = useState({
@@ -30,6 +32,28 @@ export default function KYCForm() {
     setForm({ ...form, [key]: value });
   };
 
+  const getUserLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Location permission is required to submit KYC."
+        );
+        return null;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      return {
+        latitude: location.coords.latitude.toString(),
+        longitude: location.coords.longitude.toString(),
+      };
+    } catch (err: any) {
+      Alert.alert("Error", "Unable to get location: " + err.message);
+      return null;
+    }
+  };
+
   const pickDocument = async () => {
     const result = await DocumentPicker.getDocumentAsync({
       type: "application/pdf",
@@ -40,18 +64,81 @@ export default function KYCForm() {
     }
   };
 
+  // const handleSubmit = async () => {
+  //   if (!form.fullName || !form.passportNumber || !file) {
+  //     Alert.alert("Error", "Please fill all fields and upload document.");
+  //     return;
+  //   }
+
+  //   try {
+  //     setLoading(true);
+  //     let formData = new FormData();
+  //     Object.entries(form).forEach(([key, value]) => {
+  //       formData.append(key, value);
+  //     });
+
+  //     if (file) {
+  //       // @ts-ignore
+  //       formData.append("document", {
+  //         uri: file.uri,
+  //         name: file.name,
+  //         type: "application/pdf",
+  //       });
+  //     }
+
+  //     const res = await fetch("http://<YOUR_BACKEND_URL>/store-kyc", {
+  //       method: "POST",
+  //       body: formData,
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     });
+
+  //     const data = await res.json();
+  //     if (res.ok) {
+  //       Alert.alert("✅ Success", "KYC stored successfully!", [
+  //         {
+  //           text: "OK",
+  //           onPress: () => router.push("/home/home"),
+  //         },
+  //       ]);
+  //     } else {
+  //       Alert.alert("❌ Failed", data.message || "Something went wrong");
+  //     }
+  //   } catch (err: any) {
+  //     Alert.alert("Error", err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  const API_BASE_URL = "http://localhost:5000/api/kyc/store-kyc";
   const handleSubmit = async () => {
-    if (!form.fullName || !form.passportNumber || !file) {
-      Alert.alert("Error", "Please fill all fields and upload document.");
+    // Validate
+    if (
+      !form.fullName ||
+      !form.passportNumber ||
+      !form.nationality ||
+      !form.contactNumber ||
+      !form.address ||
+      !file
+    ) {
+      Alert.alert("Error", "Please fill all fields and upload a PDF document.");
       return;
     }
 
+    setLoading(true);
+
     try {
-      setLoading(true);
-      let formData = new FormData();
-      Object.entries(form).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
+      const location = await getUserLocation();
+      if (!location) return;
+
+      const formData = new FormData();
+      Object.entries(form).forEach(([key, value]) =>
+        formData.append(key, value)
+      );
+
+      formData.append("latitude", location.latitude);
+      formData.append("longitude", location.longitude);
 
       if (file) {
         // @ts-ignore
@@ -62,27 +149,24 @@ export default function KYCForm() {
         });
       }
 
-      const res = await fetch("http://<YOUR_BACKEND_URL>/store-kyc", {
-        method: "POST",
-        body: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // Replace <YOUR_BACKEND_URL> with actual backend
+      const res = await axios.post(
+        `${API_BASE_URL}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
 
-      const data = await res.json();
-      if (res.ok) {
+      if (res.status === 201) {
         Alert.alert("✅ Success", "KYC stored successfully!", [
-          {
-            text: "OK",
-            onPress: () => router.push("/home/home"),
-          },
+          { text: "OK", onPress: () => router.push("/home/home") },
         ]);
       } else {
-        Alert.alert("❌ Failed", data.message || "Something went wrong");
+        Alert.alert("❌ Failed", res.data.message || "Something went wrong");
       }
     } catch (err: any) {
-      Alert.alert("Error", err.message);
+      Alert.alert("Error", err.message || "Failed to submit KYC");
     } finally {
       setLoading(false);
     }
@@ -93,21 +177,23 @@ export default function KYCForm() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>KYC Registration</Text>
 
-        {["fullName", "passportNumber", "nationality", "contactNumber", "address"].map(
-          (field) => (
-            <View key={field} style={styles.inputGroup}>
-              <Text style={styles.label}>
-                {field.replace(/([A-Z])/g, " $1")}
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder={`Enter ${field}`}
-                value={form[field as keyof typeof form]}
-                onChangeText={(val) => handleChange(field, val)}
-              />
-            </View>
-          )
-        )}
+        {[
+          "fullName",
+          "passportNumber",
+          "nationality",
+          "contactNumber",
+          "address",
+        ].map((field) => (
+          <View key={field} style={styles.inputGroup}>
+            <Text style={styles.label}>{field.replace(/([A-Z])/g, " $1")}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder={`Enter ${field}`}
+              value={form[field as keyof typeof form]}
+              onChangeText={(val) => handleChange(field, val)}
+            />
+          </View>
+        ))}
 
         <TouchableOpacity style={styles.uploadButton} onPress={pickDocument}>
           <Text style={styles.uploadText}>
@@ -116,7 +202,10 @@ export default function KYCForm() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.submitButton, loading && { backgroundColor: "#90CAF9" }]}
+          style={[
+            styles.submitButton,
+            loading && { backgroundColor: "#90CAF9" },
+          ]}
           onPress={handleSubmit}
           disabled={loading}
         >
