@@ -9,17 +9,20 @@ const policeStations = {
   "Mumbai": "mumbai.police@gov.in"
 };
 
-// Create SOS alert
+// Create or update SOS alert
 export const createSOS = async (req, res) => {
   try {
-    const { userId, location, city } = req.body;
+    const { userId, username, location, city } = req.body;
 
     // Get police station email from city
     const policeStationEmail = policeStations[city] || "default.police@gov.in";
 
-    // Save SOS in DB
-    const sos = new SOS({ userId, location, policeStationEmail });
-    await sos.save();
+    // Upsert: find existing SOS record and update, or create new if none exists
+    const sos = await SOS.findOneAndUpdate(
+      {}, // singleton: no filter
+      { userId, username, location, policeStationEmail, timestamp: new Date() },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
     // Fetch user info (for email template)
     const user = await User.findById(userId).select("username email");
