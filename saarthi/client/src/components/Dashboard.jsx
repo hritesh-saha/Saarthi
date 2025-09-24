@@ -75,45 +75,6 @@ const StatCard = ({ title, value, icon, colorClass }) => (
 
 const SOS_API = "http://localhost:5000/auth/users/so";
 
-// const Dashboard = () => {
-//   const [peopleLocations, setPeopleLocations] = useState([]);
-
-//   // Mock data generation (could later come from API)
-//   useEffect(() => {
-//     const generateMockPeople = (count) =>
-//       Array.from({ length: count }, () => [22.57 + (Math.random() - 0.5) * 0.1, 88.36 + (Math.random() - 0.5) * 0.1]);
-
-//     setPeopleLocations(generateMockPeople(1200));
-//   }, []);
-
-//   const totalTourists = peopleLocations.length;
-//   const touristsInRedZone = Math.floor(totalTourists * 0.05);
-//   const touristsInSafeZone = totalTourists - touristsInRedZone;
-
-//   return (
-//     <div className="bg-gray-100 dark:bg-gray-900 min-h-screen p-4 sm:p-6 lg:p-8 font-sans">
-//       <div className="max-w-7xl mx-auto">
-//         {/* Header */}
-//         <header className="mb-6">
-//           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Authority Dashboard</h1>
-//           <p className="text-md text-gray-600 dark:text-gray-400">Real-time Tourist Tracking & Safety Monitoring</p>
-//         </header>
-
-//         {/* Stat Cards */}
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-//           <StatCard title="Total Tourists" value={totalTourists} icon={<UsersIcon />} colorClass="text-blue-500" />
-//           <StatCard title="Tourists in Red Area" value={touristsInRedZone} icon={<AlertTriangleIcon />} colorClass="text-red-500" />
-//           <StatCard title="Tourists in Safe Area" value={touristsInSafeZone} icon={<ShieldCheckIcon />} colorClass="text-green-500" />
-//         </div>
-
-//         {/* MapPage */}
-//         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-//           <MapPage peopleLocations={peopleLocations} />
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
 const Dashboard = () => {
   const [totalTourists, setTotalTourists] = useState(0);
   const [lastAlertUser, setLastAlertUser] = useState("tourist");
@@ -121,67 +82,115 @@ const Dashboard = () => {
   const touristsInRedZone = Math.floor(totalTourists * 0.05);
   const touristsInSafeZone = totalTourists - touristsInRedZone;
 
-   // Poll for SOS alerts every 2–3 seconds
-useEffect(() => {
-  let lastAlertedUser = null; // local variable to track last toast
+  // Poll for SOS alerts every 2–3 seconds
+  // useEffect(() => {
+  //   let lastAlertedUser = null; // local variable to track last toast
 
-  const interval = setInterval(async () => {
-    try {
-      const res = await axios.get(SOS_API);
-      const alerts = res.data;
-      console.log("alert:",alerts);
+  //   const interval = setInterval(async () => {
+  //     try {
+  //       const res = await axios.get(SOS_API);
+  //       const alerts = res.data;
+  //       console.log("alert:", alerts);
 
-      if (alerts && alerts.length > 0) {
-        const latestUsername = alerts[0]?.username || "Tourist";
-        console.log("latestUsername:",latestUsername);
+  //       if (alerts && alerts.length > 0) {
+  //         const latestUsername = alerts[0]?.username || "Tourist";
+  //         console.log("latestUsername:", latestUsername);
 
-        // Only show toast if username changed
-        if (lastAlertedUser !== latestUsername) {
-          lastAlertedUser = latestUsername; // update local tracker
-          setLastAlertUser(latestUsername); // update state if needed
+  //         // Only show toast if username changed
+  //         if (lastAlertedUser !== latestUsername) {
+  //           lastAlertedUser = latestUsername; // update local tracker
+  //           setLastAlertUser(latestUsername); // update state if needed
 
-          setTimeout(() => {
-  toast.info(`🚨 New SOS from ${latestUsername} at ${
-    alerts[0]?.location
-      ? `Latitude: ${alerts[0].location.latitude}, Longitude: ${alerts[0].location.longitude}`
-      : "Kolkata"
-  }`, {
-    position: "top-right",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-  });
-}, 0);
+  //           setTimeout(() => {
+  //             toast.info(
+  //               `🚨 New SOS from ${latestUsername} at ${
+  //                 alerts[0]?.location
+  //                   ? `Latitude: ${alerts[0].location.latitude}, Longitude: ${alerts[0].location.longitude}`
+  //                   : "Kolkata"
+  //               }`,
+  //               {
+  //                 position: "top-right",
+  //                 autoClose: 5000,
+  //                 hideProgressBar: false,
+  //                 closeOnClick: true,
+  //                 pauseOnHover: true,
+  //                 draggable: true,
+  //                 progress: undefined,
+  //               }
+  //             );
+  //           }, 0);
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Error fetching SOS alerts:", err);
+  //     }
+  //   }, 2500);
 
+  //   return () => clearInterval(interval);
+  // }, []);
+  useEffect(() => {
+    const userAlertCounts = {}; // track alertCount for each user
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await axios.get(SOS_API);
+        const alerts = res.data;
+        console.log("alerts:", alerts);
+
+        if (alerts && alerts.length > 0) {
+          // Loop through all alerts
+          alerts.forEach((alert) => {
+            const username = alert.username || "Tourist";
+            const count = alert.alertCount || 0;
+
+            // Only show toast if alertCount increased
+            if (
+              !userAlertCounts[username] ||
+              count > userAlertCounts[username]
+            ) {
+              userAlertCounts[username] = count; // update local tracker
+
+              toast.info(
+                `🚨 New SOS from ${username} at ${
+                  alert.location
+                    ? `Latitude: ${alert.location.latitude}, Longitude: ${alert.location.longitude}`
+                    : "Kolkata"
+                } (Alert count: ${count})`,
+                {
+                  position: "top-right",
+                  autoClose: 5000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                }
+              );
+            }
+          });
         }
+      } catch (err) {
+        console.error("Error fetching SOS alerts:", err);
       }
-    } catch (err) {
-      console.error("Error fetching SOS alerts:", err);
-    }
-  }, 2500);
+    }, 2500);
 
-  return () => clearInterval(interval);
-}, []);
-
-
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-screen p-6 lg:p-10 font-sans">
       <ToastContainer
-  position="top-right"
-  autoClose={5000}
-  hideProgressBar={false}
-  newestOnTop={false}
-  closeOnClick
-  rtl={false}
-  pauseOnFocusLoss
-  draggable
-  pauseOnHover
-/>
- 
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <header className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 p-8 shadow-md">

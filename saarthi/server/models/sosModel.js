@@ -11,6 +11,7 @@ const sosSchema = new mongoose.Schema({
   },
   policeStationEmail: { type: String, required: true },
   status: { type: String, enum: ["Pending", "Resolved"], default: "Pending" },
+  alertCount: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 
