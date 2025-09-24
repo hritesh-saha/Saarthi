@@ -60,14 +60,15 @@ export default function Page() {
       // Backend returns { message, token }
       const { message, token, user } = response.data;
 
-      setAlertMessage(message);
-
-      if (token && user) {
+      console.log(response.data.user._id);
+      if (response.data.user._id) {
       // Store user and token in AsyncStorage
       // await AsyncStorage.setItem("userToken", token);
       // await AsyncStorage.setItem("userInfo", JSON.stringify(user));
-      localStorage.setItem("userToken", token);
-      localStorage.setItem("userInfo", JSON.stringify(user));
+      console.log("User and token is here");
+      await localStorage.setItem("userInfo", JSON.stringify(response.data.user._id));
+      setAlertMessage(message);
+
 
       // Navigate to home
       router.push("/home/home");

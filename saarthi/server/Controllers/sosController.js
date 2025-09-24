@@ -16,11 +16,12 @@ export const createSOS = async (req, res) => {
 
     // Get police station email from city
     const policeStationEmail = policeStations[city] || "default.police@gov.in";
+    const name=username || "hritesh";
 
     // Upsert: find existing SOS record and update, or create new if none exists
     const sos = await SOS.findOneAndUpdate(
       {}, // singleton: no filter
-      { userId, username, location, policeStationEmail, timestamp: new Date() },
+      { userId, username: name, location, policeStationEmail, timestamp: new Date() },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
