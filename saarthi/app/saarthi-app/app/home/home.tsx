@@ -4,24 +4,63 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import * as Location from "expo-location";
 
 export default function HomeScreen() {
   const router = useRouter();
   const [sosActive, setSosActive] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [location, setLocation] = useState<any>(null);
+   const getUserLocation = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert(
+            "Permission Denied",
+            "Location permission is required to submit KYC."
+          );
+          return null;
+        }
+  
+        const location = await Location.getCurrentPositionAsync({});
+        return {
+          latitude: location.coords.latitude.toString(),
+          longitude: location.coords.longitude.toString(),
+        };
+      } catch (err: any) {
+        Alert.alert("Error", "Unable to get location: " + err.message);
+        return null;
+      }
+    };
+    useEffect(() => {
+      (async () => {
+        const location = await getUserLocation();
+        if (!location) return;
+        setLocation(location);
+      })();
+    }, []);
 
   useEffect(() => {
     // Load user data from AsyncStorage
+    
     const fetchUser = async () => {
       try {
-        const userData = await AsyncStorage.getItem("userInfo");
-        if (userData) setUser(JSON.parse(userData));
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      }
-    };
-    fetchUser();
+       const userId = await localStorage.getItem("userInfo");
+        const Id = JSON.parse(userId || "null");
+
+        if (!userId) throw new Error("User ID not found in storage");
+
+      // Fetch user from backend
+      const response = await fetch(`http://localhost:5000/auth/users/${Id}`);
+      const data = await response.json();
+      console.log(data);
+      setUser(data);
+    } catch (error) {
+      console.error("Failed to load user:", error);
+    }
+  };
+  fetchUser();
   }, []);
 
   const triggerSOS = async () => {
@@ -31,14 +70,15 @@ export default function HomeScreen() {
     }
 
     try {
+      console.log(location);
       const payload = {
         userId: user._id, // assuming your userInfo contains _id
         username: user.username,
-        location: "Unknown Location", // later replace with GPS if needed
-        city: "Kolkata",
+        location: location, // later replace with GPS if needed
+        city: "Kolkata", // later replace with actual city if needed
       };
-
-      const response = await axios.post("http://localhost:5000/api/alert/sos", payload);
+      console.log(payload);
+      const response = await axios.post("http://localhost:5000/auth/users/so/", { payload });
 
       if (response.status === 201) {
         Alert.alert("🚨 SOS Sent!", "Help request has been sent successfully.");

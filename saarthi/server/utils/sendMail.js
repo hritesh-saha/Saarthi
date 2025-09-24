@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { sosEmail } from "./emailTemplate";
+import { sosEmail } from "./emailTemplate.js";
 
 const sendMail = async (emailId, subject, details) => {
   const transporter = nodemailer.createTransport({

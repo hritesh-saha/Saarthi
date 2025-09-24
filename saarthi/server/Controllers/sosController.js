@@ -34,13 +34,14 @@ export const createSOS = async (req, res) => {
       city,
       timestamp: new Date().toLocaleString(),
     };
-
+    
     // Send mail to police
-    await sendMail(
-      policeStationEmail,
-      "🚨 Emergency SOS Alert",
-      details
-    );
+    // await sendMail(
+    //   policeStationEmail,
+    //   "🚨 Emergency SOS Alert",
+    //   details
+    // );
+    console.log(`Mock email sent to police station with details:`, details);
 
     // Respond with success
     res.status(201).json({ message: "✅ SOS sent successfully", sos });
