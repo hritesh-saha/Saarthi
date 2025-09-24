@@ -60,12 +60,15 @@ export default function Page() {
       // Backend returns { message, token }
       const { message, token, user } = response.data;
 
+      console.log(response.data.user._id);
+      if (response.data.user._id) {
+      // Store user and token in AsyncStorage
+      // await AsyncStorage.setItem("userToken", token);
+      // await AsyncStorage.setItem("userInfo", JSON.stringify(user));
+      console.log("User and token is here");
+      await localStorage.setItem("userInfo", JSON.stringify(response.data.user._id));
       setAlertMessage(message);
 
-      if (token && user) {
-      // Store user and token in AsyncStorage
-      await AsyncStorage.setItem("userToken", token);
-      await AsyncStorage.setItem("userInfo", JSON.stringify(user));
 
       // Navigate to home
       router.push("/home/home");
@@ -123,12 +126,15 @@ export default function Page() {
       });
 
       const { message, token, user } = response.data;
+      console.log(response.data.userId);
 
       setAlertMessage(message + " Redirecting to kyc registration...");
-      if (token && user) {
+      if (response.data.userId) {
       // Store user and token in AsyncStorage
-      await AsyncStorage.setItem("userToken", token);
-      await AsyncStorage.setItem("userInfo", JSON.stringify(user));
+      // await AsyncStorage.setItem("userToken", token);
+      // await AsyncStorage.setItem("userInfo", JSON.stringify(user));
+      console.log("User and token is here");
+      await localStorage.setItem("userInfo", JSON.stringify(response.data.userId));
 
       // Navigate to home
       router.push("/kycfolder/kycfolder");
@@ -143,6 +149,7 @@ export default function Page() {
     } finally {
       setIsLoading(false);
     }
+    router.push("/kycfolder/kycfolder");
   };
 
   const AlertModal = ({

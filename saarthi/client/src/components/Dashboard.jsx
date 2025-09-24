@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import MapPage from "./HeatMap/MapPage.jsx";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
 
 // --- ICONS ---
 const UsersIcon = (props) => (
@@ -72,7 +73,7 @@ const StatCard = ({ title, value, icon, colorClass }) => (
   </div>
 );
 
-const SOS_API = "http://localhost:5000/api/alert/sos";
+const SOS_API = "http://localhost:5000/auth/users/so";
 
 // const Dashboard = () => {
 //   const [peopleLocations, setPeopleLocations] = useState([]);
@@ -115,45 +116,72 @@ const SOS_API = "http://localhost:5000/api/alert/sos";
 // };
 const Dashboard = () => {
   const [totalTourists, setTotalTourists] = useState(0);
-  const [lastAlertUser, setLastAlertUser] = useState(null);
+  const [lastAlertUser, setLastAlertUser] = useState("tourist");
 
   const touristsInRedZone = Math.floor(totalTourists * 0.05);
   const touristsInSafeZone = totalTourists - touristsInRedZone;
 
-  // Poll for SOS alerts every 2–3 seconds
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const res = await axios.get(SOS_API);
-        const alert = res.data;
+   // Poll for SOS alerts every 2–3 seconds
+useEffect(() => {
+  let lastAlertedUser = null; // local variable to track last toast
 
-        // If new alert received
-        if (alert) {
-          setLastAlertUser(alert.userId.username);
+  const interval = setInterval(async () => {
+    try {
+      const res = await axios.get(SOS_API);
+      const alerts = res.data;
+      console.log("alert:",alerts);
 
-          toast.info(
-            `🚨 New SOS from ${alert.userId.username} at ${alert.location}`,
-            {
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            }
-          );
+      if (alerts && alerts.length > 0) {
+        const latestUsername = alerts[0]?.username || "Tourist";
+        console.log("latestUsername:",latestUsername);
+
+        // Only show toast if username changed
+        if (lastAlertedUser !== latestUsername) {
+          lastAlertedUser = latestUsername; // update local tracker
+          setLastAlertUser(latestUsername); // update state if needed
+
+          setTimeout(() => {
+  toast.info(`🚨 New SOS from ${latestUsername} at ${
+    alerts[0]?.location
+      ? `Latitude: ${alerts[0].location.latitude}, Longitude: ${alerts[0].location.longitude}`
+      : "Kolkata"
+  }`, {
+    position: "top-right",
+    autoClose: 5000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+  });
+}, 0);
+
         }
-      } catch (err) {
-        console.error("Error fetching SOS alerts:", err);
       }
-    }, 2500); // 2.5 seconds
+    } catch (err) {
+      console.error("Error fetching SOS alerts:", err);
+    }
+  }, 2500);
 
-    return () => clearInterval(interval);
-  }, [lastAlertUser]);
+  return () => clearInterval(interval);
+}, []);
+
+
 
   return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-screen p-6 lg:p-10 font-sans">
+      <ToastContainer
+  position="top-right"
+  autoClose={5000}
+  hideProgressBar={false}
+  newestOnTop={false}
+  closeOnClick
+  rtl={false}
+  pauseOnFocusLoss
+  draggable
+  pauseOnHover
+/>
+ 
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <header className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 p-8 shadow-md">

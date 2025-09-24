@@ -26,7 +26,13 @@ export const registerUser = async (req, res) => {
 
     await user.save();
 
-    res.status(201).json({ message: "✅ User registered successfully", userId: user._id, user: user });
+    const userObject ={
+      username:username,
+      email: email,
+      role: role
+    }
+
+    res.status(201).json({ message: "✅ User registered successfully", userId: user._id, userName: user.username, userEmail: user.email, userRole: user.role });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

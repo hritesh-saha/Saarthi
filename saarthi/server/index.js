@@ -25,7 +25,7 @@ connectDB();
 app.use("/api/kyc", kycRoutes);
 app.use("/api/location", locationRoutes);
 app.use("/auth/users", userRoutes);
-app.use("/api/alert",sosRoutes);
+app.use("/api", sosRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is working!');
