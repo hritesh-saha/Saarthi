@@ -129,31 +129,33 @@ useEffect(() => {
     try {
       const res = await axios.get(SOS_API);
       const alerts = res.data;
+      console.log("alert:",alerts);
 
       if (alerts && alerts.length > 0) {
         const latestUsername = alerts[0]?.username || "Tourist";
+        console.log("latestUsername:",latestUsername);
 
         // Only show toast if username changed
         if (lastAlertedUser !== latestUsername) {
           lastAlertedUser = latestUsername; // update local tracker
           setLastAlertUser(latestUsername); // update state if needed
 
-          toast.info(
-            `🚨 New SOS from ${latestUsername} at ${
-              alerts[0]?.location
-                ? `Latitude: ${alerts[0].location.latitude}, Longitude: ${alerts[0].location.longitude}`
-                : "Kolkata"
-            }`,
-            {
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            }
-          );
+          setTimeout(() => {
+  toast.info(`🚨 New SOS from ${latestUsername} at ${
+    alerts[0]?.location
+      ? `Latitude: ${alerts[0].location.latitude}, Longitude: ${alerts[0].location.longitude}`
+      : "Kolkata"
+  }`, {
+    position: "top-right",
+    autoClose: 5000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+  });
+}, 0);
+
         }
       }
     } catch (err) {
@@ -168,6 +170,18 @@ useEffect(() => {
 
   return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-screen p-6 lg:p-10 font-sans">
+      <ToastContainer
+  position="top-right"
+  autoClose={5000}
+  hideProgressBar={false}
+  newestOnTop={false}
+  closeOnClick
+  rtl={false}
+  pauseOnFocusLoss
+  draggable
+  pauseOnHover
+/>
+ 
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <header className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 p-8 shadow-md">
